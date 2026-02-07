@@ -28,6 +28,7 @@
                 <li><a href="#about">About</a></li>
                 <li><a href="#services">Services</a></li>
                 <li><a href="#contact" class="btn-nav">Contact Us</a></li>
+                <li><a href="#" id="authBtn" class="btn-nav">Login / Signup</a></li>
             </ul>
         </div>
     </nav>
@@ -63,7 +64,7 @@
                     <li><i class="fas fa-check-circle"></i> Sterile & Patient-Focused Care</li>
                     <li><i class="fas fa-check-circle"></i> Comprehensive Eye Exams</li>
                 </ul>
-                <a href="#contact" class="btn btn-primary">Meet Our Team</a>
+                <a href="#" id="meetTeamBtn" class="btn btn-primary">Meet Our Team</a>
             </div>
         </div>
     </section>
@@ -198,7 +199,146 @@
         </div>
     </footer>
 
-    <script src="script.js"></script>
+    <!-- Authentication Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="auth-container">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">Login</button>
+                    <button class="auth-tab" data-tab="signup">Sign Up</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm" class="auth-form active">
+                    <h3>Welcome Back</h3>
+                    <div class="form-group">
+                        <input type="email" id="loginEmail" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="loginPassword" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary full-width">Login</button>
+                    <p class="auth-message" id="loginMessage"></p>
+                </form>
+
+                <!-- Signup Form -->
+                <form id="signupForm" class="auth-form">
+                    <h3>Create Account</h3>
+                    <div class="form-group">
+                        <input type="email" id="signupEmail" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="signupPassword" placeholder="Password (min 6 characters)" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="signupConfirmPassword" placeholder="Confirm Password" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-primary full-width">Sign Up</button>
+                    <p class="auth-message" id="signupMessage"></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Modal -->
+    <div id="teamModal" class="modal">
+        <div class="modal-content team-modal-content">
+            <span class="close" onclick="closeTeamModal()">&times;</span>
+            <div class="team-modal-body">
+                <h2 class="heading text-center">Meet Our Expert Team</h2>
+                <p class="text-center" style="margin-bottom: 40px; color: var(--light-text);">Our board-certified ophthalmologists bring decades of experience in eye care</p>
+                
+                <div class="team-grid">
+                    <!-- Doctor 1 -->
+                    <div class="doctor-card">
+                        <div class="doctor-avatar">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <h3>Dr. Rajesh Sharma</h3>
+                        <p class="doctor-title">Chief Ophthalmologist</p>
+                        <p class="doctor-specialty">Specialization: Cataract & Refractive Surgery</p>
+                        <p class="doctor-experience">Experience: 18 Years</p>
+                        <p class="doctor-education">MBBS, MS (Ophthalmology), FRCS</p>
+                    </div>
+
+                    <!-- Doctor 2 -->
+                    <div class="doctor-card">
+                        <div class="doctor-avatar">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <h3>Dr. Priya Patel</h3>
+                        <p class="doctor-title">Senior Consultant</p>
+                        <p class="doctor-specialty">Specialization: Pediatric Ophthalmology</p>
+                        <p class="doctor-experience">Experience: 12 Years</p>
+                        <p class="doctor-education">MBBS, DNB (Ophthalmology)</p>
+                    </div>
+
+                    <!-- Doctor 3 -->
+                    <div class="doctor-card">
+                        <div class="doctor-avatar">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <h3>Dr. Anil Kumar</h3>
+                        <p class="doctor-title">Consultant Ophthalmologist</p>
+                        <p class="doctor-specialty">Specialization: Glaucoma & Retina</p>
+                        <p class="doctor-experience">Experience: 15 Years</p>
+                        <p class="doctor-education">MBBS, MS, Fellowship in Glaucoma</p>
+                    </div>
+
+                    <!-- Doctor 4 -->
+                    <div class="doctor-card">
+                        <div class="doctor-avatar">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <h3>Dr. Meera Reddy</h3>
+                        <p class="doctor-title">Consultant Ophthalmologist</p>
+                        <p class="doctor-specialty">Specialization: Cornea & LASIK Surgery</p>
+                        <p class="doctor-experience">Experience: 10 Years</p>
+                        <p class="doctor-education">MBBS, MS (Ophthalmology), Fellowship</p>
+                    </div>
+
+                    <!-- Doctor 5 -->
+                    <div class="doctor-card">
+                        <div class="doctor-avatar">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <h3>Dr. Suresh Iyer</h3>
+                        <p class="doctor-title">Associate Consultant</p>
+                        <p class="doctor-specialty">Specialization: Oculoplastic Surgery</p>
+                        <p class="doctor-experience">Experience: 8 Years</p>
+                        <p class="doctor-education">MBBS, DNB, Fellowship in Oculoplasty</p>
+                    </div>
+
+                    <!-- Doctor 6 -->
+                    <div class="doctor-card">
+                        <div class="doctor-avatar">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <h3>Dr. Kavita Singh</h3>
+                        <p class="doctor-title">Junior Consultant</p>
+                        <p class="doctor-specialty">Specialization: General Ophthalmology</p>
+                        <p class="doctor-experience">Experience: 5 Years</p>
+                        <p class="doctor-education">MBBS, MS (Ophthalmology)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Popup -->
+    <div id="successPopup" class="success-popup">
+        <div class="success-popup-content">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 id="successTitle">Success!</h3>
+            <p id="successMessage">Your message has been received.</p>
+            <button class="btn btn-primary" onclick="closeSuccessPopup()">OK</button>
+        </div>
+    </div>
+
+    <script src="script.js?v=2.0"></script>
 </body>
 
 </html>
