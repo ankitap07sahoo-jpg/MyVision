@@ -9,25 +9,27 @@ const clearToken = () => localStorage.removeItem('authToken');
 // API Helper Functions
 const api = {
     async signup(email, password) {
-        const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+        const response = await fetch(`${API_BASE_URL}/auth/cognito-signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
         const data = await response.json();
         console.log('Signup response:', { status: response.status, data });
-        return data;
+        // Include status in the returned data for better error handling
+        return { ...data, status: response.status, ok: response.ok };
     },
 
     async login(email, password) {
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        const response = await fetch(`${API_BASE_URL}/auth/cognito-login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
         const data = await response.json();
         console.log('Login response:', { status: response.status, data });
-        return data;
+        // Include status in the returned data for better error handling
+        return { ...data, status: response.status, ok: response.ok };
     },
 
     async getUser() {
@@ -201,21 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Check if user is logged in on page load
-    const token = getToken();
-    if (token) {
-        console.log('User is authenticated');
-        updateAuthButton(true);
-        // Optionally fetch user data
-        api.getUser()
-            .then(data => console.log('User data:', data))
-            .catch(err => {
-                console.error('Failed to fetch user:', err);
-                clearToken();
-                updateAuthButton(false);
-            });
-    }
-
     // Authentication Modal Functionality
     const authModal = document.getElementById('authModal');
     const authBtn = document.getElementById('authBtn');
@@ -242,14 +229,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Open modal
-    if (authBtn) {
-        authBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (!getToken()) {
-                authModal.classList.add('show');
-            }
-        });
+    // Check if user is logged in on page load
+    const token = getToken();
+    if (token) {
+        console.log('User is authenticated');
+        updateAuthButton(true);
+        // Optionally fetch user data
+        api.getUser()
+            .then(data => console.log('User data:', data))
+            .catch(err => {
+                console.error('Failed to fetch user:', err);
+                clearToken();
+                updateAuthButton(false);
+            });
+    } else {
+        // Initialize button for logged out state
+        updateAuthButton(false);
     }
 
     // Close modal
@@ -283,6 +278,48 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Function to show success notification on screen
+    const showSuccessNotification = (message) => {
+        const notification = document.createElement('div');
+        notification.className = 'success-notification';
+        notification.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>${message}</span>
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => notification.classList.add('show'), 100);
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
+    };
+
+    // Function to prompt user to save credentials
+    const promptSaveCredentials = async (email, password) => {
+        if (window.PasswordCredential) {
+            try {
+                const cred = new PasswordCredential({
+                    id: email,
+                    password: password,
+                    name: email
+                });
+                await navigator.credentials.store(cred);
+                console.log('Credentials saved to browser');
+            } catch (err) {
+                console.log('Credential storage declined or failed:', err);
+            }
+        } else {
+            // Fallback: Custom dialog for browsers that don't support Credential Management API
+            const shouldSave = confirm('Would you like to save your login credentials in Google/Browser for future logins?');
+            if (shouldSave) {
+                console.log('User chose to save credentials (manual reminder)');
+                // Note: Actual credential saving would be handled by browser's built-in save password prompt
+            }
+        }
+    };
+
     // Login Form Handler
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
@@ -302,25 +339,55 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const result = await api.login(email, password);
                 
+                console.log('Login result details:', {
+                    ok: result.ok,
+                    status: result.status,
+                    hasToken: !!result.token,
+                    message: result.message,
+                    fullResult: result
+                });
+                
+                // Check if login was successful - look for token first
                 if (result.token) {
                     setToken(result.token);
-                    messageEl.textContent = 'Login successful!';
+                    messageEl.textContent = 'You have successfully logged in!';
                     messageEl.className = 'auth-message success';
+                    messageEl.style.display = 'block';
                     updateAuthButton(true);
+                    
+                    // Show success notification on screen
+                    showSuccessNotification('🎉 You have successfully logged in!');
+                    
+                    // Prompt to save credentials after successful login
+                    setTimeout(() => {
+                        promptSaveCredentials(email, password);
+                    }, 500);
                     
                     setTimeout(() => {
                         authModal.classList.remove('show');
                         loginForm.reset();
                         messageEl.style.display = 'none';
+                    }, 2000);
+                } else if (result.needsVerification) {
+                    // Email not verified — redirect to OTP verification page
+                    messageEl.textContent = 'Please verify your email first. Redirecting...';
+                    messageEl.className = 'auth-message error';
+                    messageEl.style.display = 'block';
+                    localStorage.setItem('verifyEmail', result.email || email);
+                    setTimeout(() => {
+                        window.location.href = `verify-otp.html?email=${encodeURIComponent(result.email || email)}`;
                     }, 1500);
                 } else {
-                    messageEl.textContent = result.message || 'Login failed';
+                    // Handle error responses (including "Invalid credentials")
+                    messageEl.textContent = result.message || 'Login failed. Please check your credentials.';
                     messageEl.className = 'auth-message error';
+                    messageEl.style.display = 'block';
                 }
             } catch (error) {
                 console.error('Login error:', error);
                 messageEl.textContent = 'Login failed. Please check your credentials.';
                 messageEl.className = 'auth-message error';
+                messageEl.style.display = 'block';
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Login';
@@ -346,6 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (password !== confirmPassword) {
                 messageEl.textContent = 'Passwords do not match!';
                 messageEl.className = 'auth-message error';
+                messageEl.style.display = 'block';
                 return;
             }
             
@@ -355,25 +423,82 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const result = await api.signup(email, password);
                 
+                console.log('Signup result details:', {
+                    ok: result.ok,
+                    status: result.status,
+                    hasToken: !!result.token,
+                    message: result.message,
+                    fullResult: result
+                });
+                
+                // Check if signup was successful - look for token first
                 if (result.token) {
                     setToken(result.token);
-                    messageEl.textContent = 'Account created successfully!';
+                    messageEl.textContent = 'You have successfully registered!';
                     messageEl.className = 'auth-message success';
+                    messageEl.style.display = 'block';
                     updateAuthButton(true);
+                    
+                    // Show success notification on screen
+                    showSuccessNotification('🎊 You have successfully registered!');
+                    
+                    // Prompt to save credentials after successful signup
+                    setTimeout(() => {
+                        promptSaveCredentials(email, password);
+                    }, 500);
                     
                     setTimeout(() => {
                         authModal.classList.remove('show');
                         signupForm.reset();
                         messageEl.style.display = 'none';
-                    }, 1500);
-                } else {
-                    messageEl.textContent = result.message || 'Signup failed';
+                    }, 2000);
+                } else if (result.status === 201) {
+                    // Account created successfully - redirect to OTP verification page
+                    messageEl.textContent = 'Account created! Redirecting to verification...';
+                    messageEl.className = 'auth-message success';
+                    messageEl.style.display = 'block';
+                    
+                    // Store email for verification page
+                    localStorage.setItem('verifyEmail', email);
+                    
+                    // Redirect to OTP verification page after 1 second
+                    setTimeout(() => {
+                        window.location.href = `verify-otp.html?email=${encodeURIComponent(email)}`;
+                    }, 1000);
+                } else if (result.status === 409) {
+                    // Account already exists - offer to switch to login
+                    messageEl.innerHTML = 'This email is already registered. <a href="#" id="switchToLoginLink" style="color: #007bff; text-decoration: underline;">Click here to login instead</a>';
                     messageEl.className = 'auth-message error';
+                    messageEl.style.display = 'block';
+                    
+                    // Add click handler for the login link
+                    setTimeout(() => {
+                        const switchLink = document.getElementById('switchToLoginLink');
+                        if (switchLink) {
+                            switchLink.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                // Switch to login tab
+                                const loginTab = document.querySelector('[data-tab="login"]');
+                                if (loginTab) {
+                                    loginTab.click();
+                                }
+                                // Clear signup form
+                                signupForm.reset();
+                                messageEl.style.display = 'none';
+                            });
+                        }
+                    }, 100);
+                } else {
+                    // Handle other error responses
+                    messageEl.textContent = result.message || 'Signup failed. Please try again.';
+                    messageEl.className = 'auth-message error';
+                    messageEl.style.display = 'block';
                 }
             } catch (error) {
                 console.error('Signup error:', error);
                 messageEl.textContent = 'Signup failed. Please try again.';
                 messageEl.className = 'auth-message error';
+                messageEl.style.display = 'block';
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Sign Up';

@@ -210,29 +210,29 @@
                 </div>
 
                 <!-- Login Form -->
-                <form id="loginForm" class="auth-form active">
+                <form id="loginForm" class="auth-form active" autocomplete="on">
                     <h3>Welcome Back</h3>
                     <div class="form-group">
-                        <input type="email" id="loginEmail" placeholder="Email" required>
+                        <input type="email" id="loginEmail" name="email" placeholder="Email" required autocomplete="email">
                     </div>
                     <div class="form-group">
-                        <input type="password" id="loginPassword" placeholder="Password" required>
+                        <input type="password" id="loginPassword" name="password" placeholder="Password" required autocomplete="current-password">
                     </div>
                     <button type="submit" class="btn btn-primary full-width">Login</button>
                     <p class="auth-message" id="loginMessage"></p>
                 </form>
 
                 <!-- Signup Form -->
-                <form id="signupForm" class="auth-form">
+                <form id="signupForm" class="auth-form" autocomplete="on">
                     <h3>Create Account</h3>
                     <div class="form-group">
-                        <input type="email" id="signupEmail" placeholder="Email" required>
+                        <input type="email" id="signupEmail" name="email" placeholder="Email" required autocomplete="email">
                     </div>
                     <div class="form-group">
-                        <input type="password" id="signupPassword" placeholder="Password (min 6 characters)" required minlength="6">
+                        <input type="password" id="signupPassword" name="new-password" placeholder="Password (min 6 characters)" required minlength="6" autocomplete="new-password">
                     </div>
                     <div class="form-group">
-                        <input type="password" id="signupConfirmPassword" placeholder="Confirm Password" required minlength="6">
+                        <input type="password" id="signupConfirmPassword" name="confirm-password" placeholder="Confirm Password" required minlength="6" autocomplete="new-password">
                     </div>
                     <button type="submit" class="btn btn-primary full-width">Sign Up</button>
                     <p class="auth-message" id="signupMessage"></p>
@@ -338,7 +338,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=2.0"></script>
+    <script src="script.js?v=3.4"></script>
 </body>
 
 </html>
